@@ -1,0 +1,1 @@
+godepgraph -s -p github.com/go-chi,github.com/jackc,github.com/jmoiron,github.com/caarlos0,github.com/pkg,golang.org ./cmd/gophermart | dot -Tpng -o godepgraph_gophermart.png
