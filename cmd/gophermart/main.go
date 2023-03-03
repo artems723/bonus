@@ -33,7 +33,33 @@ func main() {
 	if err != nil {
 		log.Fatalf("error parsing config file: %v", err)
 	}
-	log.Printf("Using config: %#v", cfg)
+	log.Printf("using config: %#v", cfg)
+	// Start server
+	err = run(cfg)
+	if err != nil {
+		log.Fatalf("gophermart server failed: %v", err)
+	}
+}
+
+func run(cfg config.Config) error {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	go func() {
+		// catch signal and invoke graceful termination
+		stop := make(chan os.Signal, 1)
+		signal.Notify(stop, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+		<-stop
+		log.Printf("interrupt signal")
+		cancel()
+	}()
+
+	defer func() {
+		// handle panic
+		if x := recover(); x != nil {
+			log.Printf("runtime panic: %v\n", x)
+			panic(x)
+		}
+	}()
 
 	// Connect to DB
 	db, err := sqlx.Connect("pgx", cfg.DatabaseURI)
@@ -52,7 +78,7 @@ func main() {
 		break
 	}
 
-	// Apply migrations
+	// TODO Apply migrations
 
 	log.Println("connected to DB")
 
@@ -68,29 +94,11 @@ func main() {
 	// Create server
 	srv := httpserver.New()
 
-	// Create channel for graceful shutdown
-	done := make(chan os.Signal, 1)
-	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-
 	// Start http server
-	go func() {
-		err = srv.Run(cfg.RunAddress, h.InitRoutes())
-		if err != nil && err != http.ErrServerClosed {
-			log.Fatalf("srv.Run, error occured while running http server: %v", err)
-		}
-	}()
-	log.Printf("Server started")
-
-	<-done
-	// Shutdown http server
-	err = srv.Shutdown(context.Background())
-	if err != nil {
-		log.Fatalf("Server shutdown Failed:%+v", err)
+	err = srv.Run(ctx, cfg.RunAddress, h.InitRoutes())
+	if err != nil && err == http.ErrServerClosed {
+		log.Printf("server closed: %v", err)
+		return nil
 	}
-	err = serv.Shutdown()
-	if err != nil {
-		log.Fatalf("serv.Shutdown: %v", err)
-	}
-	log.Print("Server stopped properly")
-
+	return err
 }

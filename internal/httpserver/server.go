@@ -3,19 +3,20 @@ package httpserver
 import (
 	"context"
 	"github.com/go-chi/chi/v5"
+	"log"
 	"net/http"
 	"time"
 )
 
-type server struct {
+type Server struct {
 	httpServer *http.Server
 }
 
-func New() server {
-	return server{}
+func New() Server {
+	return Server{}
 }
 
-func (s *server) Run(serverAddr string, r *chi.Mux) error {
+func (s *Server) Run(ctx context.Context, serverAddr string, r *chi.Mux) error {
 	s.httpServer = &http.Server{
 		Addr:           serverAddr,
 		MaxHeaderBytes: 1 << 20, // 1MB
@@ -23,9 +24,19 @@ func (s *server) Run(serverAddr string, r *chi.Mux) error {
 		WriteTimeout:   10 * time.Second,
 		Handler:        r,
 	}
-	return s.httpServer.ListenAndServe()
-}
 
-func (s *server) Shutdown(ctx context.Context) error {
-	return s.httpServer.Shutdown(ctx)
+	// handle graceful termination
+	go func() {
+		<-ctx.Done()
+		if s.httpServer != nil {
+			err := s.httpServer.Shutdown(ctx)
+			if err != nil {
+				log.Printf("failed to shut down http server, %v", err)
+			} else {
+				log.Print("http server stopped properly")
+			}
+		}
+	}()
+
+	return s.httpServer.ListenAndServe()
 }
