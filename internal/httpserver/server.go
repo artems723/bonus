@@ -32,8 +32,6 @@ func (s *Server) Run(ctx context.Context, serverAddr string, r *chi.Mux) error {
 			err := s.httpServer.Shutdown(ctx)
 			if err != nil {
 				log.Printf("failed to shut down http server, %v", err)
-			} else {
-				log.Print("http server stopped properly")
 			}
 		}
 	}()
