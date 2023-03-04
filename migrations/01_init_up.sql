@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS "user"
+CREATE TABLE IF NOT EXISTS user
 (
     id            bigserial primary key,
     login         text   not null,
@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS "user"
     CONSTRAINT    login_unique UNIQUE (login)
 );
 
-CREATE TABLE IF NOT EXISTS "order"
+CREATE TABLE IF NOT EXISTS order
 (
     id          bigserial primary key,
     user_id     bigint         not null,
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS "order"
     CONSTRAINT  number_unique UNIQUE (number)
 );
 
-CREATE TABLE IF NOT EXISTS "balance"
+CREATE TABLE IF NOT EXISTS balance
 (
     id          bigserial primary key,
     user_id     bigint         not null,
