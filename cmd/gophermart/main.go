@@ -17,7 +17,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 )
 
 func main() {
@@ -67,21 +66,6 @@ func run(cfg config.Config) (err error) {
 	db, err := sqlx.Connect("pgx", cfg.DatabaseURI)
 	if err != nil {
 		log.Fatalf("unable to connect to db: %v", err)
-	}
-
-	// Wait for successful DB ping
-	i := 0
-	for {
-		if i++; i > 10 {
-			log.Fatalf("unable to connect to db")
-		}
-		err := db.Ping()
-		if err != nil {
-			log.Printf("db ping: %v\n", err)
-			time.Sleep(time.Second)
-			continue
-		}
-		break
 	}
 
 	// TODO Apply migrations
