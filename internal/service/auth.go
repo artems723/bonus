@@ -5,7 +5,7 @@ import (
 	"context"
 )
 
-type AuthService interface {
+type CreateUser interface {
 	Create(ctx context.Context, user model.User) error
 	GetByLogin(ctx context.Context, login string) (model.User, error)
 }
