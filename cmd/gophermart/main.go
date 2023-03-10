@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 )
 
@@ -68,7 +69,13 @@ func run(cfg config.Config) (err error) {
 		log.Fatalf("unable to connect to db: %v", err)
 	}
 
-	// TODO Apply migrations
+	// Create table if not exists
+	file, err := os.ReadFile(filepath.Join("migrations", "01_init_up.sql"))
+	if err != nil {
+		log.Fatalf("unable to create tables in db: %v", err)
+	}
+	schema := string(file)
+	db.MustExec(schema)
 
 	log.Println("connected to DB")
 
