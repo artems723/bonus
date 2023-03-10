@@ -7,6 +7,7 @@ import (
 	"bonus/internal/repository"
 	"bonus/internal/service"
 	"context"
+	"errors"
 	"flag"
 	"github.com/caarlos0/env/v6"
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -41,7 +42,16 @@ func main() {
 	}
 }
 
-func run(cfg config.Config) error {
+func run(cfg config.Config) (err error) {
+
+	defer func() {
+		// handle panic
+		if x := recover(); x != nil {
+			log.Printf("runtime panic: %v\n", x)
+			err = errors.New("runtime panic: " + x.(string))
+		}
+	}()
+
 	ctx, cancel := context.WithCancel(context.Background())
 
 	go func() {
@@ -53,14 +63,6 @@ func run(cfg config.Config) error {
 		cancel()
 	}()
 
-	defer func() {
-		// handle panic
-		if x := recover(); x != nil {
-			log.Printf("runtime panic: %v\n", x)
-			panic(x)
-		}
-	}()
-
 	// Connect to DB
 	db, err := sqlx.Connect("pgx", cfg.DatabaseURI)
 	if err != nil {
@@ -68,7 +70,11 @@ func run(cfg config.Config) error {
 	}
 
 	// Wait for successful DB ping
+	i := 0
 	for {
+		if i++; i > 10 {
+			log.Fatalf("unable to connect to db")
+		}
 		err := db.Ping()
 		if err != nil {
 			log.Printf("db ping: %v\n", err)
