@@ -1,25 +1,37 @@
 package model
 
-import "time"
+import (
+	"github.com/shopspring/decimal"
+	"time"
+)
 
 type User struct {
-	ID           uint64
+	ID           int64
 	Login        string
 	PasswordHash string
 }
 
 type Order struct {
-	ID         uint64
-	UserID     uint64
+	ID         int64
+	UserID     int64
 	Number     string
-	Status     string
-	Accrual    float64
+	Status     OrderStatus
+	Accrual    *decimal.Decimal
 	UploadedAt time.Time
 }
 
+type OrderStatus string
+
+const (
+	OrderStatusNew        OrderStatus = "NEW"
+	OrderStatusProcessing OrderStatus = "PROCESSING"
+	OrderStatusInvalid    OrderStatus = "INVALID"
+	OrderStatusProcessed  OrderStatus = "PROCESSED"
+)
+
 type Balance struct {
-	ID     uint64
-	UserID uint64
+	ID     int64
+	UserID int64
 	Order  string
 	Sum    float64
 }
