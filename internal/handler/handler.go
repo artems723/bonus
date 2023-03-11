@@ -1,10 +1,12 @@
 package handler
 
 import (
+	"bonus/internal/model"
 	"bonus/internal/service"
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"log"
 	"net/http"
 )
 
@@ -30,18 +32,50 @@ func (h *handler) InitRoutes() *chi.Mux {
 	r.Use(middleware.Compress(5))
 	r.Use(middleware.Recoverer)
 
-	r.Route("/api/user", func(r chi.Router) {
-		r.Post("/register", TempHandler)
-		r.Post("/login", TempHandler)
-		r.Post("/orders", TempHandler)
-		r.Get("/orders", TempHandler)
-		r.Get("/balance", TempHandler)
-		r.Post("/balance/withdraw", TempHandler)
-		r.Get("/withdrawals", TempHandler)
+	// Public routes
+	r.Group(func(r chi.Router) {
+		r.Post("/api/user/register", RegisterHandler)
+		r.Post("/api/user/login", LoginHandler)
+	})
+
+	// Protected routes
+	r.Group(func(r chi.Router) {
+		r.Use(BasicAuth)
+		r.Post("/api/user/orders", TempHandler)
+		r.Get("/api/user/orders", TempHandler)
+		r.Get("/api/user/balance", TempHandler)
+		r.Post("/api/user/balance/withdraw", TempHandler)
+		r.Get("/api/user/withdrawals", TempHandler)
 	})
 	return r
 }
 
 func TempHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(fmt.Sprintf("hi")))
+}
+
+func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte(fmt.Sprintf("please register")))
+}
+
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte(fmt.Sprintf("please login")))
+}
+
+func BasicAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		username, password, ok := r.BasicAuth()
+		user := model.User{
+			ID:           0,
+			Login:        username,
+			PasswordHash: password,
+		}
+		log.Printf("User: %v\n", user)
+		if !ok {
+			w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		}
+		// authenticated, pass it through
+		next.ServeHTTP(w, r)
+	})
 }
