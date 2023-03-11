@@ -15,3 +15,8 @@ type BalanceRepository interface {
 	Create(ctx context.Context, withdrawal *model.Balance) error
 	GetByUserID(ctx context.Context, userID uint64) ([]*model.Balance, error)
 }
+
+type UserRepository interface {
+	Create(ctx context.Context, user model.User) error
+	GetByLogin(ctx context.Context, login string) (model.User, error)
+}

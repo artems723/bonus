@@ -40,7 +40,7 @@ func (h *handler) InitRoutes() *chi.Mux {
 
 	// Protected routes
 	r.Group(func(r chi.Router) {
-		r.Use(BasicAuth)
+		r.Use(Authenticator)
 		r.Post("/api/user/orders", TempHandler)
 		r.Get("/api/user/orders", TempHandler)
 		r.Get("/api/user/balance", TempHandler)
@@ -55,6 +55,15 @@ func TempHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	username, password, ok := r.BasicAuth()
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusBadRequest)
+	}
+	user := model.User{
+		Login:        username,
+		PasswordHash: password,
+	}
+
 	w.Write([]byte(fmt.Sprintf("please register")))
 }
 
@@ -62,11 +71,11 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(fmt.Sprintf("please login")))
 }
 
-func BasicAuth(next http.Handler) http.Handler {
+// Authenticator middleware
+func Authenticator(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		username, password, ok := r.BasicAuth()
 		user := model.User{
-			ID:           0,
 			Login:        username,
 			PasswordHash: password,
 		}
