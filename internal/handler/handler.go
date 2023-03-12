@@ -11,12 +11,16 @@ import (
 )
 
 type handler struct {
-	s service.Service
+	user    service.UserService
+	order   service.OrderService
+	balance service.BalanceService
 }
 
-func New(s service.Service) *handler {
+func New(u service.UserService, o service.OrderService, b service.BalanceService) *handler {
 	return &handler{
-		s: s,
+		user:    u,
+		order:   o,
+		balance: b,
 	}
 }
 

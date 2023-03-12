@@ -80,13 +80,15 @@ func run(cfg config.Config) (err error) {
 	log.Println("connected to DB")
 
 	// Create repositories
+	userRepo := repository.NewUserRepository(db)
 	orderRepo := repository.NewOrderRepository(db)
 	balanceRepo := repository.NewBalanceRepository(db)
-	// Create service
-	serv := service.New(orderRepo, balanceRepo)
-
+	// Create services
+	userService := service.NewUserService(userRepo)
+	orderService := service.NewOrderService(orderRepo)
+	balanceService := service.NewBalanceService(balanceRepo)
 	// Create handler
-	h := handler.New(serv)
+	h := handler.New(userService, orderService, balanceService)
 
 	// Create server
 	srv := httpserver.New()
