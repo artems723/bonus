@@ -72,11 +72,11 @@ func (h *Handler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = h.userService.Create(r.Context(), user)
-	if err != nil && !errors.Is(err, repository.ErrUsernameIsTaken) {
+	if err != nil && !errors.Is(err, repository.ErrLoginIsTaken) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if errors.Is(err, repository.ErrUsernameIsTaken) {
+	if errors.Is(err, repository.ErrLoginIsTaken) {
 		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}

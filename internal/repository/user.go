@@ -20,10 +20,11 @@ func (u *UserRepository) Create(ctx context.Context, user *model.User) error {
 	tx := u.db.MustBegin()
 	_, err := tx.NamedExec("INSERT INTO users (login, password_hash) VALUES (:login, :password)", user)
 	if err != nil {
+		// check if login is taken
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23505" {
-				return ErrUsernameIsTaken
+				return ErrLoginIsTaken
 			}
 		}
 		return err
@@ -39,4 +40,4 @@ func (u *UserRepository) GetByLogin(ctx context.Context, login string) (*model.U
 }
 
 var ErrUserNotFound = errors.New("user not found")
-var ErrUsernameIsTaken = errors.New("username is taken, try another one")
+var ErrLoginIsTaken = errors.New("username is taken, try another one")
