@@ -6,13 +6,13 @@ import (
 )
 
 type UserService interface {
-	Create(ctx context.Context, user model.User) error
-	GetByLogin(ctx context.Context, login string) (model.User, error)
+	Create(ctx context.Context, user *model.User) error
+	GetByLogin(ctx context.Context, login string) (*model.User, error)
 }
 
 type UserRepository interface {
-	Create(ctx context.Context, user model.User) error
-	GetByLogin(ctx context.Context, login string) (model.User, error)
+	Create(ctx context.Context, user *model.User) error
+	GetByLogin(ctx context.Context, login string) (*model.User, error)
 }
 
 type userService struct {
@@ -23,9 +23,9 @@ func NewUserService(user UserRepository) *userService {
 	return &userService{user}
 }
 
-func (u *userService) Create(ctx context.Context, user model.User) error {
+func (u *userService) Create(ctx context.Context, user *model.User) error {
 	return u.user.Create(ctx, user)
 }
-func (u *userService) GetByLogin(ctx context.Context, login string) (model.User, error) {
+func (u *userService) GetByLogin(ctx context.Context, login string) (*model.User, error) {
 	return u.user.GetByLogin(ctx, login)
 }

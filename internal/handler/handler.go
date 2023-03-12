@@ -2,7 +2,10 @@ package handler
 
 import (
 	"bonus/internal/model"
+	"bonus/internal/repository"
 	"bonus/internal/service"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -10,21 +13,21 @@ import (
 	"net/http"
 )
 
-type handler struct {
-	user    service.UserService
-	order   service.OrderService
-	balance service.BalanceService
+type Handler struct {
+	userService    service.UserService
+	orderService   service.OrderService
+	balanceService service.BalanceService
 }
 
-func New(u service.UserService, o service.OrderService, b service.BalanceService) *handler {
-	return &handler{
-		user:    u,
-		order:   o,
-		balance: b,
+func New(u service.UserService, o service.OrderService, b service.BalanceService) *Handler {
+	return &Handler{
+		userService:    u,
+		orderService:   o,
+		balanceService: b,
 	}
 }
 
-func (h *handler) InitRoutes() *chi.Mux {
+func (h *Handler) InitRoutes() *chi.Mux {
 	// Create new chi router
 	r := chi.NewRouter()
 
@@ -38,40 +41,50 @@ func (h *handler) InitRoutes() *chi.Mux {
 
 	// Public routes
 	r.Group(func(r chi.Router) {
-		r.Post("/api/user/register", RegisterHandler)
-		r.Post("/api/user/login", LoginHandler)
+		r.Post("/api/user/register", h.RegisterHandler)
+		r.Post("/api/user/login", h.LoginHandler)
 	})
 
 	// Protected routes
 	r.Group(func(r chi.Router) {
 		r.Use(Authenticator)
-		r.Post("/api/user/orders", TempHandler)
-		r.Get("/api/user/orders", TempHandler)
-		r.Get("/api/user/balance", TempHandler)
-		r.Post("/api/user/balance/withdraw", TempHandler)
-		r.Get("/api/user/withdrawals", TempHandler)
+		r.Post("/api/user/orders", h.TempHandler)
+		r.Get("/api/user/orders", h.TempHandler)
+		r.Get("/api/user/balance", h.TempHandler)
+		r.Post("/api/user/balance/withdraw", h.TempHandler)
+		r.Get("/api/user/withdrawals", h.TempHandler)
 	})
 	return r
 }
 
-func TempHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) TempHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(fmt.Sprintf("hi")))
 }
 
-func RegisterHandler(w http.ResponseWriter, r *http.Request) {
-	username, password, ok := r.BasicAuth()
-	if !ok {
-		http.Error(w, "Unauthorized", http.StatusBadRequest)
-	}
-	user := model.User{
-		Login:        username,
-		PasswordHash: password,
+func (h *Handler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	var user *model.User
+	// Read JSON and store to user struct
+	err := json.NewDecoder(r.Body).Decode(&user)
+	// Check errors
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
-	w.Write([]byte(fmt.Sprintf("please register")))
+	err = h.userService.Create(r.Context(), user)
+	if err != nil && !errors.Is(err, repository.ErrUsernameIsTaken) {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if errors.Is(err, repository.ErrUsernameIsTaken) {
+		http.Error(w, err.Error(), http.StatusConflict)
+		return
+	}
+	log.Printf("User was registered: %v\n", user)
+	w.WriteHeader(http.StatusOK)
 }
 
-func LoginHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(fmt.Sprintf("please login")))
 }
 

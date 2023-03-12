@@ -6,9 +6,16 @@ import (
 )
 
 type User struct {
-	ID           int64
-	Login        string
-	PasswordHash string
+	ID           int64  `json:"id,omitempty" db:"id"`
+	Login        string `json:"login" db:"login"`
+	PasswordHash string `json:"password" db:"password"`
+}
+
+func NewUser(login string, passwordHash string) User {
+	return User{
+		Login:        login,
+		PasswordHash: passwordHash,
+	}
 }
 
 type Order struct {

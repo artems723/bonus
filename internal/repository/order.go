@@ -6,20 +6,20 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type orderRepository struct {
+type OrderRepository struct {
 	db *sqlx.DB
 }
 
-func NewOrderRepository(db *sqlx.DB) *orderRepository {
-	return &orderRepository{db}
+func NewOrderRepository(db *sqlx.DB) *OrderRepository {
+	return &OrderRepository{db}
 }
 
-func (o *orderRepository) Create(ctx context.Context, order *model.Order) error {
+func (o *OrderRepository) Create(ctx context.Context, order *model.Order) error {
 	return nil
 }
-func (o *orderRepository) GetByUserID(ctx context.Context, userID uint64) ([]*model.Order, error) {
+func (o *OrderRepository) GetByUserID(ctx context.Context, userID uint64) ([]*model.Order, error) {
 	return nil, nil
 }
-func (o *orderRepository) GetByNumber(ctx context.Context, number string) (*model.Order, error) {
+func (o *OrderRepository) GetByNumber(ctx context.Context, number string) (*model.Order, error) {
 	return nil, nil
 }

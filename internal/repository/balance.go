@@ -6,17 +6,17 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type balanceRepository struct {
+type BalanceRepository struct {
 	db *sqlx.DB
 }
 
-func NewBalanceRepository(db *sqlx.DB) *balanceRepository {
-	return &balanceRepository{db}
+func NewBalanceRepository(db *sqlx.DB) *BalanceRepository {
+	return &BalanceRepository{db}
 }
 
-func (b *balanceRepository) Create(ctx context.Context, withdrawal *model.Balance) error {
+func (b *BalanceRepository) Create(ctx context.Context, withdrawal *model.Balance) error {
 	return nil
 }
-func (b *balanceRepository) GetByUserID(ctx context.Context, userID uint64) ([]*model.Balance, error) {
+func (b *BalanceRepository) GetByUserID(ctx context.Context, userID uint64) ([]*model.Balance, error) {
 	return nil, nil
 }

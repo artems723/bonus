@@ -26,6 +26,7 @@ func main() {
 	// Parse config from flag
 	flag.StringVar(&cfg.RunAddress, "a", ":8080", "server address and port")
 	// urlExample := "postgres://username:password@localhost:5432/database_name"
+	//flag.StringVar(&cfg.DatabaseURI, "d", "postgres://postgres:pass@localhost/postgres?sslmode=disable", "database Uniform Resource Identifier")
 	flag.StringVar(&cfg.DatabaseURI, "d", "postgres://postgres:pass@postgres/postgres?sslmode=disable", "database Uniform Resource Identifier")
 	flag.StringVar(&cfg.AccrualSystemAddress, "r", "", "accrual system address")
 	flag.Parse()
