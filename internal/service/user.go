@@ -19,3 +19,10 @@ func NewUserService(user UserRepository) UserService {
 		user: user,
 	}
 }
+
+func (u *userService) Create(ctx context.Context, user model.User) error {
+	return u.user.Create(ctx, user)
+}
+func (u *userService) GetByLogin(ctx context.Context, login string) (model.User, error) {
+	return u.user.GetByLogin(ctx, login)
+}
