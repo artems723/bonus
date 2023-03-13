@@ -1,15 +1,10 @@
 package handler
 
 import (
-	"bonus/internal/model"
-	"bonus/internal/repository"
 	"bonus/internal/service"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"log"
 	"net/http"
 )
 
@@ -59,49 +54,4 @@ func (h *Handler) InitRoutes() *chi.Mux {
 
 func (h *Handler) TempHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(fmt.Sprintf("hi")))
-}
-
-func (h *Handler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
-	var user *model.User
-	// Read JSON and store to user struct
-	err := json.NewDecoder(r.Body).Decode(&user)
-	// Check errors
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	// Create user
-	err = h.userService.Create(r.Context(), user)
-	if err != nil && !errors.Is(err, repository.ErrLoginIsTaken) {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if errors.Is(err, repository.ErrLoginIsTaken) {
-		http.Error(w, err.Error(), http.StatusConflict)
-		return
-	}
-	log.Printf("User was registered: %v\n", user)
-	w.WriteHeader(http.StatusOK)
-}
-
-func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(fmt.Sprintf("please login")))
-}
-
-// Authenticator middleware
-func Authenticator(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		username, password, ok := r.BasicAuth()
-		user := model.User{
-			Login:        username,
-			PasswordHash: password,
-		}
-		log.Printf("User: %v\n", user)
-		if !ok {
-			w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		}
-		// authenticated, pass it through
-		next.ServeHTTP(w, r)
-	})
 }

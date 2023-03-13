@@ -3,6 +3,21 @@ POST http://localhost:8080/api/user/register
 Content-Type: application/json
 
 {
-  "login": "temp6",
+  "login": "temp12",
   "password": "12345"
 }
+
+###  POST /login
+POST http://localhost:8080/api/user/login
+Content-Type: application/json
+
+{
+  "login": "temp12",
+  "password": "12345"
+}
+
+###  POST /orders
+POST http://localhost:8080/api/user/orders
+Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NzkwMDAwMzksInN1YiI6InRlbXAxMiJ9.8sCIZHPvzmmG4AjU06OmXQs7xo9ZK1-9uVpZDDdQDiQ
+

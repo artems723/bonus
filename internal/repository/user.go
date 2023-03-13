@@ -3,6 +3,7 @@ package repository
 import (
 	"bonus/internal/model"
 	"context"
+	"database/sql"
 	"errors"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jmoiron/sqlx"
@@ -36,7 +37,15 @@ func (u *UserRepository) Create(ctx context.Context, user *model.User) error {
 	return nil
 }
 func (u *UserRepository) GetByLogin(ctx context.Context, login string) (*model.User, error) {
-	return &model.User{}, nil
+	var user model.User
+	err := u.db.Get(&user, "SELECT login, password_hash FROM users WHERE login = $1", login)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, err
+	}
+	if err == sql.ErrNoRows {
+		return nil, ErrUserNotFound
+	}
+	return &user, nil
 }
 
 var ErrUserNotFound = errors.New("user not found")
