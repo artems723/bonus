@@ -24,6 +24,10 @@ func NewUserService(user UserRepository) *userService {
 }
 
 func (u *userService) Create(ctx context.Context, user *model.User) error {
+	err := user.HashPassword()
+	if err != nil {
+		return err
+	}
 	return u.user.Create(ctx, user)
 }
 func (u *userService) GetByLogin(ctx context.Context, login string) (*model.User, error) {

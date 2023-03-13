@@ -70,7 +70,7 @@ func (h *Handler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
+	// Create user
 	err = h.userService.Create(r.Context(), user)
 	if err != nil && !errors.Is(err, repository.ErrLoginIsTaken) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
