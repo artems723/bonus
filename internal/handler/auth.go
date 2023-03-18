@@ -3,6 +3,7 @@ package handler
 import (
 	"bonus/internal/model"
 	"bonus/internal/repository"
+	"context"
 	"encoding/json"
 	"errors"
 	"github.com/golang-jwt/jwt/v5"
@@ -114,13 +115,18 @@ func Authenticator(next http.Handler) http.Handler {
 			return
 		}
 
-		username, err := ParseToken(accessToken)
+		login, err := ParseToken(accessToken)
 		if err != nil {
 			w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
-		log.Printf("user %s was authenticated\n", username)
+
+		// set username to context
+		ctx := r.Context()
+		ctx = context.WithValue(ctx, "login", login)
+		r = r.WithContext(ctx)
+		log.Printf("user %s was authenticated\n", login)
 		// authenticated, pass it through
 		next.ServeHTTP(w, r)
 	})

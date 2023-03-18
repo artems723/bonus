@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS users
 CREATE TABLE IF NOT EXISTS orders
 (
     id          bigserial primary key,
-    user_id     bigint         not null,
+    user_login  varchar(255)   not null,
     number      varchar(255)   not null,
     status      varchar(10)    not null,
     accrual     numeric(12, 2),
@@ -20,10 +20,10 @@ CREATE TABLE IF NOT EXISTS orders
 CREATE TABLE IF NOT EXISTS balances
 (
     id          bigserial primary key,
-    user_id     bigint         not null,
-    ordernum    varchar(255)   not null,
+    user_login  varchar(255)         not null,
+    order_number    varchar(255)   not null,
     debit       numeric(12, 2),
     credit      numeric(12, 2),
     created_at  Timestamp      not null,
-    CONSTRAINT  ordernum_unique UNIQUE (ordernum)
+    CONSTRAINT  ordernum_unique UNIQUE (order_number)
 );

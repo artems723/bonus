@@ -8,6 +8,7 @@ import (
 type UserService interface {
 	Create(ctx context.Context, user *model.User) error
 	CheckUser(ctx context.Context, user *model.User) (bool, error)
+	GetByLogin(ctx context.Context, login string) (*model.User, error)
 }
 
 type UserRepository interface {
@@ -37,4 +38,8 @@ func (u *userService) CheckUser(ctx context.Context, user *model.User) (bool, er
 		return false, err
 	}
 	return user.CheckPasswordHash(registeredUser), nil
+}
+
+func (u *userService) GetByLogin(ctx context.Context, login string) (*model.User, error) {
+	return u.user.GetByLogin(ctx, login)
 }
