@@ -132,7 +132,9 @@ func Authenticator(next http.Handler) http.Handler {
 	})
 }
 
-var LoginKey = "login"
+type Key string
+
+const LoginKey Key = "login"
 
 var ErrWrongPassword = errors.New("wrong password")
 var ErrWrongAuthToken = errors.New("wrong auth token")
