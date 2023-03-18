@@ -124,13 +124,15 @@ func Authenticator(next http.Handler) http.Handler {
 
 		// set username to context
 		ctx := r.Context()
-		ctx = context.WithValue(ctx, "login", login)
+		ctx = context.WithValue(ctx, LoginKey, login)
 		r = r.WithContext(ctx)
 		log.Printf("user %s was authenticated\n", login)
 		// authenticated, pass it through
 		next.ServeHTTP(w, r)
 	})
 }
+
+var LoginKey = "login"
 
 var ErrWrongPassword = errors.New("wrong password")
 var ErrWrongAuthToken = errors.New("wrong auth token")

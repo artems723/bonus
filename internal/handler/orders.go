@@ -11,7 +11,7 @@ import (
 )
 
 func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
-	login, ok := r.Context().Value("login").(string)
+	login, ok := r.Context().Value(LoginKey).(string)
 	if !ok {
 		http.Error(w, "no login in context", http.StatusInternalServerError)
 		return
@@ -53,7 +53,7 @@ func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetOrders(w http.ResponseWriter, r *http.Request) {
-	login, ok := r.Context().Value("login").(string)
+	login, ok := r.Context().Value(LoginKey).(string)
 	if !ok {
 		http.Error(w, "no login in context", http.StatusInternalServerError)
 		return

@@ -2,7 +2,6 @@ package handler
 
 import (
 	"bonus/internal/service"
-	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"net/http"
@@ -53,5 +52,5 @@ func (h *Handler) InitRoutes() *chi.Mux {
 }
 
 func (h *Handler) TempHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(fmt.Sprintf("hi")))
+
 }
