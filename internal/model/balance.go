@@ -1,8 +1,20 @@
 package model
 
+import (
+	"github.com/shopspring/decimal"
+	"time"
+)
+
 type Balance struct {
-	ID     int64
-	UserID int64
-	Order  string
-	Sum    float64
+	UserLogin   string `db:"user_login"`
+	OrderNumber string `db:"order_number"`
+	Debit       *decimal.Decimal
+	Credit      *decimal.Decimal
+	CreatedAt   time.Time `db:"created_at"`
+}
+
+type CurrentBalance struct {
+	UserLogin string           `json:"-"`
+	Current   *decimal.Decimal `json:"current"`
+	Withdrawn *decimal.Decimal `json:"withdrawn"`
 }

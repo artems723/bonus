@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bonus/internal/service"
+	"encoding/json"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"net/http"
@@ -44,7 +45,7 @@ func (h *Handler) InitRoutes() *chi.Mux {
 		r.Use(Authenticator)
 		r.Post("/api/user/orders", h.CreateOrder)
 		r.Get("/api/user/orders", h.GetOrders)
-		r.Get("/api/user/balance", h.TempHandler)
+		r.Get("/api/user/balance", h.GetBalance)
 		r.Post("/api/user/balance/withdraw", h.TempHandler)
 		r.Get("/api/user/withdrawals", h.TempHandler)
 	})
@@ -53,4 +54,24 @@ func (h *Handler) InitRoutes() *chi.Mux {
 
 func (h *Handler) TempHandler(w http.ResponseWriter, r *http.Request) {
 
+}
+
+func (h *Handler) GetBalance(w http.ResponseWriter, r *http.Request) {
+	login, ok := r.Context().Value(LoginKey).(string)
+	if !ok {
+		http.Error(w, "no login in context", http.StatusInternalServerError)
+		return
+	}
+	currentBalance, err := h.balanceService.GetByLogin(r.Context(), login)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	// Encode to JSON and write to response
+	err = json.NewEncoder(w).Encode(currentBalance)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }

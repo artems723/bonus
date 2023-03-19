@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS balances
 (
     id          bigserial primary key,
     user_login  varchar(255)         not null,
-    order_number    varchar(255)   not null,
+    order_number    varchar(255),
     debit       numeric(12, 2),
     credit      numeric(12, 2),
     created_at  Timestamp      not null,
