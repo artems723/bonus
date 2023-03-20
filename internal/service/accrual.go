@@ -55,11 +55,29 @@ func (a *Accrual) HandleStatusNew(ctx context.Context) {
 		log.Printf("order from accrual service: %v", accrualOrder)
 		// Update order status in DB
 		order.Status = MapOrderStatus(accrualOrder.Status)
+		if accrualOrder.Status == OrderStatusProcessed && accrualOrder.Accrual != nil {
+			order.Accrual = accrualOrder.Accrual
+		}
 		if err := a.order.Update(ctx, order); err != nil {
 			log.Printf("error updating order status: %v", err)
 			continue
 		}
 		log.Printf("order status updated: %v", order)
+		// Update balance in DB
+		if order.Status == model.OrderStatusProcessed {
+			balance := model.Balance{
+				UserLogin:   order.UserLogin,
+				OrderNumber: order.Number,
+				Debit:       order.Accrual,
+				Credit:      nil,
+				ProcessedAt: time.Now(),
+			}
+			if err := a.balance.Create(ctx, &balance); err != nil {
+				log.Printf("error creating balance: %v", err)
+				continue
+			}
+			log.Printf("balance created: %v", balance)
+		}
 	}
 }
 
