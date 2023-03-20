@@ -53,6 +53,14 @@ func (b *balanceService) GetByLogin(ctx context.Context, login string) (*model.C
 }
 
 func (b *balanceService) Withdraw(ctx context.Context, login string, withdrawal *model.Withdrawal) error {
+	currentBalance, err := b.GetByLogin(ctx, login)
+	if err != nil {
+		return err
+	}
+	if currentBalance.Current.Cmp(*withdrawal.Sum) < 0 {
+		return ErrNotEnoughFunds
+	}
+
 	balance := model.Balance{
 		UserLogin:   login,
 		OrderNumber: withdrawal.Order,
@@ -61,7 +69,7 @@ func (b *balanceService) Withdraw(ctx context.Context, login string, withdrawal 
 		CreatedAt:   time.Now(),
 	}
 
-	err := b.balance.Create(ctx, &balance)
+	err = b.balance.Create(ctx, &balance)
 	if err != nil {
 		return err
 	}

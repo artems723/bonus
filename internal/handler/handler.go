@@ -4,6 +4,7 @@ import (
 	"bonus/internal/model"
 	"bonus/internal/service"
 	"encoding/json"
+	"errors"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"net/http"
@@ -103,21 +104,15 @@ func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	currentBalance, err := h.balanceService.GetByLogin(r.Context(), login)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if currentBalance.Current.Cmp(*withdrawal.Sum) < 0 {
-		http.Error(w, "not enough funds in the account", http.StatusPaymentRequired)
-		return
-	}
-
 	err = h.balanceService.Withdraw(r.Context(), login, withdrawal)
-	if err != nil {
+	if err != nil && !errors.Is(err, service.ErrNotEnoughFunds) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if errors.Is(err, service.ErrNotEnoughFunds) {
+		http.Error(w, err.Error(), http.StatusPaymentRequired)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 }

@@ -32,11 +32,11 @@ GET http://localhost:8080/api/user/balance
 Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2Nzk1MTU0NjYsInN1YiI6InRlbXAxMiJ9.vzd7l-Mhk9vw4p_1nNKC6SS-UdSnOolALRzvQjQ6Lgs
 
 ###  POST /withdraw
-GET http://localhost:8080/api/user/balance/withdraw
+POST http://localhost:8080/api/user/balance/withdraw
 Content-Type: application/json
 Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2Nzk1MTU0NjYsInN1YiI6InRlbXAxMiJ9.vzd7l-Mhk9vw4p_1nNKC6SS-UdSnOolALRzvQjQ6Lgs
 
 {
   "order": "2377225624",
-  "sum": 751
+  "sum": 1
 }
