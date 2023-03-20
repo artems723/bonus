@@ -24,6 +24,6 @@ CREATE TABLE IF NOT EXISTS balances
     order_number    varchar(255) not null,
     debit       numeric(12, 2),
     credit      numeric(12, 2),
-    created_at  Timestamp      not null,
+    processed_at  Timestamp      not null,
     CONSTRAINT  ordernum_unique UNIQUE (order_number)
 );

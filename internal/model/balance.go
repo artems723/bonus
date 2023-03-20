@@ -10,7 +10,7 @@ type Balance struct {
 	OrderNumber string `db:"order_number"`
 	Debit       *decimal.Decimal
 	Credit      *decimal.Decimal
-	CreatedAt   time.Time `db:"created_at"`
+	ProcessedAt time.Time `db:"processed_at"`
 }
 
 type CurrentBalance struct {
@@ -20,6 +20,7 @@ type CurrentBalance struct {
 }
 
 type Withdrawal struct {
-	Order string
-	Sum   *decimal.Decimal
+	Order       string           `json:"order" db:"order_number"`
+	Sum         *decimal.Decimal `json:"sum" db:"credit"`
+	ProcessedAt time.Time        `json:"processed_at,omitempty" db:"processed_at"`
 }

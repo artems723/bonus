@@ -11,11 +11,13 @@ import (
 type BalanceService interface {
 	GetByLogin(ctx context.Context, login string) (*model.CurrentBalance, error)
 	Withdraw(ctx context.Context, login string, withdrawal *model.Withdrawal) error
+	GetWithdrawals(ctx context.Context, login string) ([]*model.Withdrawal, error)
 }
 
 type BalanceRepository interface {
 	Create(ctx context.Context, balance *model.Balance) error
 	GetByLogin(ctx context.Context, login string) ([]*model.Balance, error)
+	GetWithdrawals(ctx context.Context, login string) ([]*model.Withdrawal, error)
 }
 
 type balanceService struct {
@@ -44,9 +46,13 @@ func (b *balanceService) GetByLogin(ctx context.Context, login string) (*model.C
 	}
 
 	for _, bal := range balances {
-		current = current.Add(*bal.Debit)
-		current = current.Sub(*bal.Credit)
-		withdrawn = withdrawn.Add(*bal.Credit)
+		if bal.Debit != nil {
+			current = current.Add(*bal.Debit)
+		}
+		if bal.Credit != nil {
+			current = current.Sub(*bal.Credit)
+			withdrawn = withdrawn.Add(*bal.Credit)
+		}
 	}
 
 	return &currentBalance, nil
@@ -66,7 +72,7 @@ func (b *balanceService) Withdraw(ctx context.Context, login string, withdrawal 
 		OrderNumber: withdrawal.Order,
 		Debit:       nil,
 		Credit:      withdrawal.Sum,
-		CreatedAt:   time.Now(),
+		ProcessedAt: time.Now(),
 	}
 
 	err = b.balance.Create(ctx, &balance)
@@ -74,4 +80,12 @@ func (b *balanceService) Withdraw(ctx context.Context, login string, withdrawal 
 		return err
 	}
 	return nil
+}
+
+func (b *balanceService) GetWithdrawals(ctx context.Context, login string) ([]*model.Withdrawal, error) {
+	withdrawals, err := b.balance.GetWithdrawals(ctx, login)
+	if err != nil {
+		return nil, err
+	}
+	return withdrawals, nil
 }
