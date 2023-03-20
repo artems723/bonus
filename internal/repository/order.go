@@ -60,9 +60,9 @@ func (o *OrderRepository) GetByNumber(ctx context.Context, number string) (*mode
 	return &order, nil
 }
 
-func (o *OrderRepository) GetByStatus(ctx context.Context, status model.OrderStatus) ([]*model.Order, error) {
+func (o *OrderRepository) GetByStatus(ctx context.Context, status1 model.OrderStatus, status2 model.OrderStatus) ([]*model.Order, error) {
 	var orders []*model.Order
-	err := o.db.Select(&orders, "SELECT user_login,number,status,accrual,uploaded_at FROM orders WHERE status = $1", status)
+	err := o.db.Select(&orders, "SELECT user_login,number,status,accrual,uploaded_at FROM orders WHERE status = $1 OR status = $2", status1, status2)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, err
 	}

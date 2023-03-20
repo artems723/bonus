@@ -5,6 +5,7 @@ import (
 	"bonus/internal/service"
 	"encoding/json"
 	"errors"
+	"github.com/shopspring/decimal"
 	"io"
 	"net/http"
 	"time"
@@ -69,6 +70,7 @@ func (h *Handler) GetOrders(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	// Encode to JSON and write to response
+	decimal.MarshalJSONWithoutQuotes = true
 	err = json.NewEncoder(w).Encode(orders)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

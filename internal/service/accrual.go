@@ -33,19 +33,18 @@ func NewAccrualService(order OrderRepository, balance BalanceRepository, address
 }
 
 func (a *Accrual) Run(ctx context.Context) {
-	a.HandleStatusNew(ctx)
-	a.HandleStatusProcessing(ctx)
-}
-
-func (a *Accrual) HandleStatusNew(ctx context.Context) {
-	// Get all orders with status NEW
-	orders, err := a.order.GetByStatus(ctx, model.OrderStatusNew)
+	// Get all orders with status NEW and PROCESSING
+	orders, err := a.order.GetByStatus(ctx, model.OrderStatusNew, model.OrderStatusProcessing)
 	if err != nil {
-		log.Printf("error getting orders with status NEW: %v", err)
+		log.Printf("error getting orders with statuses NEW and PROCESSING: %v", err)
 		return
 	}
-	log.Printf("orders with status NEW: %v", orders)
-	// Get info from accrual service for all orders
+	log.Printf("orders with status NEW and PROCESSING: %v", orders)
+
+	a.HandleOrders(ctx, orders)
+}
+
+func (a *Accrual) HandleOrders(ctx context.Context, orders []*model.Order) {
 	for _, order := range orders {
 		accrualOrder, err := a.GetOrder(order.Number)
 		if err != nil {
@@ -53,62 +52,35 @@ func (a *Accrual) HandleStatusNew(ctx context.Context) {
 			continue
 		}
 		log.Printf("order from accrual service: %v", accrualOrder)
-		// Update order status in DB
+
 		order.Status = MapOrderStatus(accrualOrder.Status)
-		if accrualOrder.Status == OrderStatusProcessed && accrualOrder.Accrual != nil {
-			order.Accrual = accrualOrder.Accrual
-		}
-		if err := a.order.Update(ctx, order); err != nil {
-			log.Printf("error updating order status: %v", err)
-			continue
-		}
-		log.Printf("order status updated: %v", order)
-		// Update balance in DB
-		if order.Status == model.OrderStatusProcessed {
-			balance := model.Balance{
-				UserLogin:   order.UserLogin,
-				OrderNumber: order.Number,
-				Debit:       order.Accrual,
-				Credit:      nil,
-				ProcessedAt: time.Now(),
-			}
-			if err := a.balance.Create(ctx, &balance); err != nil {
-				log.Printf("error creating balance: %v", err)
+
+		switch order.Status {
+		case model.OrderStatusNew:
+		case model.OrderStatusProcessing:
+			// Update status and accrual in DB
+			if err := a.order.Update(ctx, order); err != nil {
+				log.Printf("error updating order: %v", err)
 				continue
 			}
-			log.Printf("balance created: %v", balance)
-		}
-	}
-}
-
-func (a *Accrual) HandleStatusProcessing(ctx context.Context) {
-	// Get all orders with status PROCESSING
-	orders, err := a.order.GetByStatus(ctx, model.OrderStatusProcessing)
-	if err != nil {
-		log.Printf("error getting orders with status PROCESSING: %v", err)
-		return
-	}
-	log.Printf("orders with status PROCESSING: %v", orders)
-	// Get info from accrual service for all orders
-	for _, order := range orders {
-		accrualOrder, err := a.GetOrder(order.Number)
-		if err != nil || accrualOrder.Status == OrderStatusProcessing || accrualOrder.Status == OrderStatusRegistered {
-			log.Printf("error getting order from accrual service: %v", err)
-			continue
-		}
-		log.Printf("order from accrual service: %v", accrualOrder)
-		// Update order status and accrual in DB
-		order.Status = MapOrderStatus(accrualOrder.Status)
-		if accrualOrder.Status == OrderStatusProcessed && accrualOrder.Accrual != nil {
+			log.Printf("order updated: %v", order)
+		case model.OrderStatusInvalid:
+			// Update status and accrual in DB
+			if err := a.order.Update(ctx, order); err != nil {
+				log.Printf("error updating order: %v", err)
+				continue
+			}
+			log.Printf("order updated: %v", order)
+		case model.OrderStatusProcessed:
 			order.Accrual = accrualOrder.Accrual
-		}
-		if err := a.order.Update(ctx, order); err != nil {
-			log.Printf("error updating order: %v", err)
-			continue
-		}
-		log.Printf("order updated: %v", order)
-		// Update balance in DB
-		if order.Status == model.OrderStatusProcessed {
+			// Update status and accrual in DB
+			if err := a.order.Update(ctx, order); err != nil {
+				log.Printf("error updating order: %v", err)
+				continue
+			}
+			log.Printf("order updated: %v", order)
+
+			// Update balance in DB
 			balance := model.Balance{
 				UserLogin:   order.UserLogin,
 				OrderNumber: order.Number,
@@ -148,7 +120,6 @@ func (a *Accrual) GetOrder(orderNumber string) (*AccrualOrder, error) {
 	case http.StatusTooManyRequests:
 	case http.StatusInternalServerError:
 	}
-
 	return nil, ErrInvalidResponseStatus
 }
 
