@@ -48,15 +48,15 @@ func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ok, err = h.orderService.CheckOrder(r.Context(), login, withdrawal.Order)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if !ok {
-		http.Error(w, "wrong order number", http.StatusUnprocessableEntity)
-		return
-	}
+	//ok, err = h.orderService.CheckOrder(r.Context(), login, withdrawal.Order)
+	//if err != nil {
+	//	http.Error(w, err.Error(), http.StatusInternalServerError)
+	//	return
+	//}
+	//if !ok {
+	//	http.Error(w, "wrong order number", http.StatusUnprocessableEntity)
+	//	return
+	//}
 
 	err = h.balanceService.Withdraw(r.Context(), login, withdrawal)
 	if err != nil && !errors.Is(err, service.ErrNotEnoughFunds) {
