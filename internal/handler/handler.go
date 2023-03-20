@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"bonus/internal/model"
 	"bonus/internal/service"
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
@@ -46,7 +47,7 @@ func (h *Handler) InitRoutes() *chi.Mux {
 		r.Post("/api/user/orders", h.CreateOrder)
 		r.Get("/api/user/orders", h.GetOrders)
 		r.Get("/api/user/balance", h.GetBalance)
-		r.Post("/api/user/balance/withdraw", h.TempHandler)
+		r.Post("/api/user/balance/withdraw", h.Withdraw)
 		r.Get("/api/user/withdrawals", h.TempHandler)
 	})
 	return r
@@ -74,4 +75,49 @@ func (h *Handler) GetBalance(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
+	login, ok := r.Context().Value(LoginKey).(string)
+	if !ok {
+		http.Error(w, "no login in context", http.StatusInternalServerError)
+		return
+	}
+
+	var withdrawal *model.Withdrawal
+	// Read JSON and store to user struct
+	err := json.NewDecoder(r.Body).Decode(&withdrawal)
+	// Check errors
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	ok, err = h.orderService.CheckOrder(r.Context(), login, withdrawal.Order)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if !ok {
+		http.Error(w, "wrong order number", http.StatusUnprocessableEntity)
+		return
+	}
+
+	currentBalance, err := h.balanceService.GetByLogin(r.Context(), login)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if currentBalance.Current.Cmp(*withdrawal.Sum) < 0 {
+		http.Error(w, "not enough funds in the account", http.StatusPaymentRequired)
+		return
+	}
+
+	err = h.balanceService.Withdraw(r.Context(), login, withdrawal)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }

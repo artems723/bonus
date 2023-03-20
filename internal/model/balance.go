@@ -14,7 +14,12 @@ type Balance struct {
 }
 
 type CurrentBalance struct {
-	UserLogin string           `json:"-"`
-	Current   *decimal.Decimal `json:"current"`
-	Withdrawn *decimal.Decimal `json:"withdrawn"`
+	UserLogin string `json:"-"`
+	Current   *decimal.Decimal
+	Withdrawn *decimal.Decimal
+}
+
+type Withdrawal struct {
+	Order string
+	Sum   *decimal.Decimal
 }

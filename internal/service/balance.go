@@ -5,14 +5,16 @@ import (
 	"context"
 	"errors"
 	"github.com/shopspring/decimal"
+	"time"
 )
 
 type BalanceService interface {
 	GetByLogin(ctx context.Context, login string) (*model.CurrentBalance, error)
+	Withdraw(ctx context.Context, login string, withdrawal *model.Withdrawal) error
 }
 
 type BalanceRepository interface {
-	Create(ctx context.Context, withdrawal *model.Balance) error
+	Create(ctx context.Context, balance *model.Balance) error
 	GetByLogin(ctx context.Context, login string) ([]*model.Balance, error)
 }
 
@@ -48,4 +50,20 @@ func (b *balanceService) GetByLogin(ctx context.Context, login string) (*model.C
 	}
 
 	return &currentBalance, nil
+}
+
+func (b *balanceService) Withdraw(ctx context.Context, login string, withdrawal *model.Withdrawal) error {
+	balance := model.Balance{
+		UserLogin:   login,
+		OrderNumber: withdrawal.Order,
+		Debit:       nil,
+		Credit:      withdrawal.Sum,
+		CreatedAt:   time.Now(),
+	}
+
+	err := b.balance.Create(ctx, &balance)
+	if err != nil {
+		return err
+	}
+	return nil
 }

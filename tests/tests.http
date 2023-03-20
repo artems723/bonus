@@ -19,7 +19,7 @@ Content-Type: application/json
 ###  POST /orders
 POST http://localhost:8080/api/user/orders
 Content-Type: text/plain
-Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2Nzk0Mjg4MzcsInN1YiI6InRlbXAxNiJ9.IXyNwFOkIAoY_N08sgj26XxwTGMHKI3tRC5x3dvgj6Q
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2Nzk1MTU0NjYsInN1YiI6InRlbXAxMiJ9.vzd7l-Mhk9vw4p_1nNKC6SS-UdSnOolALRzvQjQ6Lgs
 
 12345678903
 
@@ -27,7 +27,16 @@ Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2Nzk0Mjg4MzcsInN1
 GET http://localhost:8080/api/user/orders
 Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2Nzk0MzA3NzYsInN1YiI6InRlbXAxMiJ9.6Omdf3yAzc8b6NiSFV3sx4v8y7IUGjLdpeKOmOApupE
 
-###  GET /orders
+###  GET /balance
 GET http://localhost:8080/api/user/balance
 Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2Nzk1MTU0NjYsInN1YiI6InRlbXAxMiJ9.vzd7l-Mhk9vw4p_1nNKC6SS-UdSnOolALRzvQjQ6Lgs
 
+###  POST /withdraw
+GET http://localhost:8080/api/user/balance/withdraw
+Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2Nzk1MTU0NjYsInN1YiI6InRlbXAxMiJ9.vzd7l-Mhk9vw4p_1nNKC6SS-UdSnOolALRzvQjQ6Lgs
+
+{
+  "order": "2377225624",
+  "sum": 751
+}

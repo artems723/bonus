@@ -9,6 +9,7 @@ import (
 type OrderService interface {
 	Create(ctx context.Context, order *model.Order) error
 	GetByLogin(ctx context.Context, login string) ([]*model.Order, error)
+	CheckOrder(ctx context.Context, login string, orderNumber string) (bool, error)
 }
 
 type OrderRepository interface {
@@ -53,6 +54,16 @@ func (s *orderService) GetByLogin(ctx context.Context, login string) ([]*model.O
 	return orders, nil
 }
 
-var ErrOrderAlreadyExistsForAnotherUser = errors.New("order already exists for another user")
-var ErrOrderAlreadyExists = errors.New("order already exists")
-var ErrNotFound = errors.New("not found")
+func (s *orderService) CheckOrder(ctx context.Context, login string, orderNumber string) (bool, error) {
+	order, err := s.order.GetByNumber(ctx, orderNumber)
+	if err != nil && !errors.Is(err, ErrNotFound) {
+		return false, err
+	}
+	if errors.Is(err, ErrNotFound) {
+		return false, nil
+	}
+	if order.UserLogin != login {
+		return false, ErrOrderAlreadyExistsForAnotherUser
+	}
+	return true, nil
+}
