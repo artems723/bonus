@@ -2,12 +2,8 @@ package handler
 
 import (
 	"bonus/internal/service"
-	"encoding/json"
-	"errors"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"net/http"
-	"sort"
 )
 
 type Handler struct {
@@ -52,33 +48,4 @@ func (h *Handler) InitRoutes() *chi.Mux {
 		r.Get("/api/user/withdrawals", h.Withdrawals)
 	})
 	return r
-}
-
-func (h *Handler) Withdrawals(w http.ResponseWriter, r *http.Request) {
-	login, ok := r.Context().Value(LoginKey).(string)
-	if !ok {
-		http.Error(w, "no login in context", http.StatusInternalServerError)
-		return
-	}
-	withdrawals, err := h.balanceService.GetWithdrawals(r.Context(), login)
-	if err != nil && !errors.Is(err, service.ErrNotFound) {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if errors.Is(err, service.ErrNotFound) {
-		http.Error(w, err.Error(), http.StatusNoContent)
-		return
-	}
-
-	sort.Slice(withdrawals, func(i, j int) bool {
-		return withdrawals[i].ProcessedAt.Before(withdrawals[j].ProcessedAt)
-	})
-
-	w.Header().Set("Content-Type", "application/json")
-	// Encode to JSON and write to response
-	err = json.NewEncoder(w).Encode(withdrawals)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
 }
