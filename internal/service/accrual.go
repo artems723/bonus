@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/shopspring/decimal"
 	"io"
+	"log"
 	"net/http"
 	"time"
 )
@@ -40,19 +41,25 @@ func (a *Accrual) HandleStatusNew(ctx context.Context) {
 	// Get all orders with status NEW
 	orders, err := a.order.GetByStatus(ctx, model.OrderStatusNew)
 	if err != nil {
+		log.Printf("error getting orders with status NEW: %v", err)
 		return
 	}
+	log.Printf("orders with status NEW: %v", orders)
 	// Get info from accrual service for all orders
 	for _, order := range orders {
 		accrualOrder, err := a.GetOrder(order.Number)
 		if err != nil {
+			log.Printf("error getting order from accrual service: %v", err)
 			continue
 		}
+		log.Printf("order from accrual service: %v", accrualOrder)
 		// Update order status in DB
 		order.Status = MapOrderStatus(accrualOrder.Status)
 		if err := a.order.Update(ctx, order); err != nil {
+			log.Printf("error updating order status: %v", err)
 			continue
 		}
+		log.Printf("order status updated: %v", order)
 	}
 }
 
@@ -60,20 +67,28 @@ func (a *Accrual) HandleStatusProcessing(ctx context.Context) {
 	// Get all orders with status PROCESSING
 	orders, err := a.order.GetByStatus(ctx, model.OrderStatusProcessing)
 	if err != nil {
+		log.Printf("error getting orders with status PROCESSING: %v", err)
 		return
 	}
+	log.Printf("orders with status PROCESSING: %v", orders)
 	// Get info from accrual service for all orders
 	for _, order := range orders {
 		accrualOrder, err := a.GetOrder(order.Number)
-		if err != nil {
+		if err != nil || accrualOrder.Status == OrderStatusProcessing || accrualOrder.Status == OrderStatusRegistered {
+			log.Printf("error getting order from accrual service: %v", err)
 			continue
 		}
+		log.Printf("order from accrual service: %v", accrualOrder)
 		// Update order status and accrual in DB
 		order.Status = MapOrderStatus(accrualOrder.Status)
-		order.Accrual = accrualOrder.Accrual
+		if accrualOrder.Status == OrderStatusProcessed && accrualOrder.Accrual != nil {
+			order.Accrual = accrualOrder.Accrual
+		}
 		if err := a.order.Update(ctx, order); err != nil {
+			log.Printf("error updating order: %v", err)
 			continue
 		}
+		log.Printf("order updated: %v", order)
 		// Update balance in DB
 		if order.Status == model.OrderStatusProcessed {
 			balance := model.Balance{
@@ -84,8 +99,10 @@ func (a *Accrual) HandleStatusProcessing(ctx context.Context) {
 				ProcessedAt: time.Now(),
 			}
 			if err := a.balance.Create(ctx, &balance); err != nil {
+				log.Printf("error creating balance: %v", err)
 				continue
 			}
+			log.Printf("balance created: %v", balance)
 		}
 	}
 }
