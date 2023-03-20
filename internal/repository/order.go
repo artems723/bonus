@@ -59,3 +59,28 @@ func (o *OrderRepository) GetByNumber(ctx context.Context, number string) (*mode
 	}
 	return &order, nil
 }
+
+func (o *OrderRepository) GetByStatus(ctx context.Context, status model.OrderStatus) ([]*model.Order, error) {
+	var orders []*model.Order
+	err := o.db.Select(&orders, "SELECT user_login,number,status,accrual,uploaded_at FROM orders WHERE status = $1", status)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, err
+	}
+	if err == sql.ErrNoRows {
+		return nil, service.ErrNotFound
+	}
+	return orders, nil
+}
+
+func (o *OrderRepository) Update(ctx context.Context, order *model.Order) error {
+	tx := o.db.MustBegin()
+	_, err := tx.NamedExec("UPDATE orders SET status = :status, accrual = :accrual WHERE number = :number", order)
+	if err != nil {
+		return err
+	}
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+	return nil
+}

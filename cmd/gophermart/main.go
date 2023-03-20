@@ -18,6 +18,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"syscall"
+	"time"
 )
 
 func main() {
@@ -29,6 +30,7 @@ func main() {
 	flag.StringVar(&cfg.DatabaseURI, "d", "postgres://postgres:pass@localhost/postgres?sslmode=disable", "database Uniform Resource Identifier")
 	//flag.StringVar(&cfg.DatabaseURI, "d", "postgres://postgres:pass@postgres/postgres?sslmode=disable", "database Uniform Resource Identifier")
 	flag.StringVar(&cfg.AccrualSystemAddress, "r", "", "accrual system address")
+	flag.DurationVar(&cfg.AccrualPollInterval, "p", 3*time.Second, "time interval in seconds for running accrual poller")
 	flag.Parse()
 	// Parse config from env
 	err := env.Parse(&cfg)
@@ -90,6 +92,16 @@ func run(cfg config.Config) (err error) {
 	balanceService := service.NewBalanceService(balanceRepo)
 	// Create handler
 	h := handler.New(userService, orderService, balanceService)
+
+	// Create and start accrual service
+	accrualService := service.NewAccrualService(orderRepo, balanceRepo, cfg.AccrualSystemAddress)
+	// infinite loop for running accrual service
+	pollIntervalTicker := time.NewTicker(cfg.AccrualPollInterval)
+	go func() {
+		for range pollIntervalTicker.C {
+			go accrualService.Run(ctx)
+		}
+	}()
 
 	// Create server
 	srv := httpserver.New()

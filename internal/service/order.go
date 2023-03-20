@@ -16,6 +16,8 @@ type OrderRepository interface {
 	Create(ctx context.Context, order *model.Order) error
 	GetByLogin(ctx context.Context, login string) ([]*model.Order, error)
 	GetByNumber(ctx context.Context, number string) (*model.Order, error)
+	GetByStatus(ctx context.Context, status model.OrderStatus) ([]*model.Order, error)
+	Update(ctx context.Context, order *model.Order) error
 }
 
 type orderService struct {
