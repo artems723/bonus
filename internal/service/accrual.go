@@ -70,6 +70,7 @@ func (a *Accrual) HandleStatusProcessing(ctx context.Context) {
 		}
 		// Update order status and accrual in DB
 		order.Status = MapOrderStatus(accrualOrder.Status)
+		order.Accrual = accrualOrder.Accrual
 		if err := a.order.Update(ctx, order); err != nil {
 			continue
 		}
@@ -130,7 +131,7 @@ const (
 type AccrualOrder struct {
 	Order   string
 	Status  OrderStatus
-	Accrual decimal.Decimal
+	Accrual *decimal.Decimal
 }
 
 func MapOrderStatus(accrualStatus OrderStatus) model.OrderStatus {
