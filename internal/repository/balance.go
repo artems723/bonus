@@ -24,6 +24,9 @@ func (b *BalanceRepository) Create(ctx context.Context, balance *model.Balance) 
 		return err
 	}
 	err = tx.Commit()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 func (b *BalanceRepository) GetByLogin(ctx context.Context, login string) ([]*model.Balance, error) {
