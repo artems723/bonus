@@ -9,6 +9,11 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+var (
+	ErrUserNotFound = errors.New("user not found")
+	ErrLoginIsTaken = errors.New("username is taken, try another one")
+)
+
 type UserRepository struct {
 	db *sqlx.DB
 }
@@ -47,6 +52,3 @@ func (u *UserRepository) GetByLogin(ctx context.Context, login string) (*model.U
 	}
 	return &user, nil
 }
-
-var ErrUserNotFound = errors.New("user not found")
-var ErrLoginIsTaken = errors.New("username is taken, try another one")

@@ -17,7 +17,6 @@ type AccrualService interface {
 	GetOrder(orderNumber string) (*AccrualOrder, error)
 }
 
-// делать запросы к accrual по HTTP и сериализовать ответ в структуру accrual.Order и возвращать ее вызывающему коду
 type Accrual struct {
 	order   OrderRepository
 	balance BalanceRepository
