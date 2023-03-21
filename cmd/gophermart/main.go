@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 )
@@ -26,8 +27,10 @@ func main() {
 	// Parse config from flag
 	flag.StringVar(&cfg.RunAddress, "a", ":8080", "server address and port")
 	// urlExample := "postgres://username:password@localhost:5432/database_name"
-	flag.StringVar(&cfg.DatabaseURI, "d", "postgres://postgres:pass@postgres/postgres?sslmode=disable", "database Uniform Resource Identifier")
+	flag.StringVar(&cfg.DatabaseURI, "d", "postgres://postgres:pass@localhost/postgres?sslmode=disable", "database Uniform Resource Identifier")
+	//flag.StringVar(&cfg.DatabaseURI, "d", "postgres://postgres:pass@postgres/postgres?sslmode=disable", "database Uniform Resource Identifier")
 	flag.StringVar(&cfg.AccrualSystemAddress, "r", "", "accrual system address")
+	flag.DurationVar(&cfg.AccrualPollInterval, "p", 3*time.Second, "time interval in seconds for running accrual poller")
 	flag.Parse()
 	// Parse config from env
 	err := env.Parse(&cfg)
@@ -69,33 +72,36 @@ func run(cfg config.Config) (err error) {
 		log.Fatalf("unable to connect to db: %v", err)
 	}
 
-	// Wait for successful DB ping
-	i := 0
-	for {
-		if i++; i > 10 {
-			log.Fatalf("unable to connect to db")
-		}
-		err := db.Ping()
-		if err != nil {
-			log.Printf("db ping: %v\n", err)
-			time.Sleep(time.Second)
-			continue
-		}
-		break
+	// Create table if not exists
+	file, err := os.ReadFile(filepath.Join("migrations", "01_init_up.sql"))
+	if err != nil {
+		log.Fatalf("unable to create tables in db: %v", err)
 	}
-
-	// TODO Apply migrations
+	schema := string(file)
+	db.MustExec(schema)
 
 	log.Println("connected to DB")
 
 	// Create repositories
+	userRepo := repository.NewUserRepository(db)
 	orderRepo := repository.NewOrderRepository(db)
 	balanceRepo := repository.NewBalanceRepository(db)
-	// Create service
-	serv := service.New(orderRepo, balanceRepo)
-
+	// Create services
+	userService := service.NewUserService(userRepo)
+	orderService := service.NewOrderService(orderRepo)
+	balanceService := service.NewBalanceService(balanceRepo)
 	// Create handler
-	h := handler.New(serv)
+	h := handler.New(userService, orderService, balanceService)
+
+	// Create and start accrual service
+	accrualService := service.NewAccrualService(orderRepo, balanceRepo, cfg.AccrualSystemAddress)
+	// infinite loop for running accrual service
+	pollIntervalTicker := time.NewTicker(cfg.AccrualPollInterval)
+	go func() {
+		for range pollIntervalTicker.C {
+			go accrualService.Run(ctx)
+		}
+	}()
 
 	// Create server
 	srv := httpserver.New()

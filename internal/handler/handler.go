@@ -2,23 +2,25 @@ package handler
 
 import (
 	"bonus/internal/service"
-	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"net/http"
 )
 
-type handler struct {
-	s service.Service
+type Handler struct {
+	userService    service.UserService
+	orderService   service.OrderService
+	balanceService service.BalanceService
 }
 
-func New(s service.Service) *handler {
-	return &handler{
-		s: s,
+func New(u service.UserService, o service.OrderService, b service.BalanceService) *Handler {
+	return &Handler{
+		userService:    u,
+		orderService:   o,
+		balanceService: b,
 	}
 }
 
-func (h *handler) InitRoutes() *chi.Mux {
+func (h *Handler) InitRoutes() *chi.Mux {
 	// Create new chi router
 	r := chi.NewRouter()
 
@@ -30,18 +32,20 @@ func (h *handler) InitRoutes() *chi.Mux {
 	r.Use(middleware.Compress(5))
 	r.Use(middleware.Recoverer)
 
-	r.Route("/api/user", func(r chi.Router) {
-		r.Post("/register", TempHandler)
-		r.Post("/login", TempHandler)
-		r.Post("/orders", TempHandler)
-		r.Get("/orders", TempHandler)
-		r.Get("/balance", TempHandler)
-		r.Post("/balance/withdraw", TempHandler)
-		r.Get("/withdrawals", TempHandler)
+	// Public routes
+	r.Group(func(r chi.Router) {
+		r.Post("/api/user/register", h.RegisterHandler)
+		r.Post("/api/user/login", h.LoginHandler)
+	})
+
+	// Protected routes
+	r.Group(func(r chi.Router) {
+		r.Use(Authenticator)
+		r.Post("/api/user/orders", h.CreateOrder)
+		r.Get("/api/user/orders", h.GetOrders)
+		r.Get("/api/user/balance", h.GetBalance)
+		r.Post("/api/user/balance/withdraw", h.Withdraw)
+		r.Get("/api/user/withdrawals", h.Withdrawals)
 	})
 	return r
-}
-
-func TempHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(fmt.Sprintf("hi")))
 }

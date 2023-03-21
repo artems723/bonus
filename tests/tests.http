@@ -1,0 +1,47 @@
+###  POST /register
+POST http://localhost:8080/api/user/register
+Content-Type: application/json
+
+{
+  "login": "temp12",
+  "password": "12345"
+}
+
+###  POST /login
+POST http://localhost:8080/api/user/login
+Content-Type: application/json
+
+{
+  "login": "temp12",
+  "password": "12345"
+}
+
+###  POST /orders
+POST http://localhost:8080/api/user/orders
+Content-Type: text/plain
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2Nzk1MTU0NjYsInN1YiI6InRlbXAxMiJ9.vzd7l-Mhk9vw4p_1nNKC6SS-UdSnOolALRzvQjQ6Lgs
+
+12345678901237
+
+###  GET /orders
+GET http://localhost:8080/api/user/orders
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2Nzk0MzA3NzYsInN1YiI6InRlbXAxMiJ9.6Omdf3yAzc8b6NiSFV3sx4v8y7IUGjLdpeKOmOApupE
+
+###  GET /balance
+GET http://localhost:8080/api/user/balance
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2Nzk1MTU0NjYsInN1YiI6InRlbXAxMiJ9.vzd7l-Mhk9vw4p_1nNKC6SS-UdSnOolALRzvQjQ6Lgs
+
+###  POST /withdraw
+POST http://localhost:8080/api/user/balance/withdraw
+Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2Nzk1MTU0NjYsInN1YiI6InRlbXAxMiJ9.vzd7l-Mhk9vw4p_1nNKC6SS-UdSnOolALRzvQjQ6Lgs
+
+{
+  "order": "12345678901237",
+  "sum": 2
+}
+
+###  GET /withdrawals
+GET http://localhost:8080/api/user/withdrawals
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2Nzk1MTU0NjYsInN1YiI6InRlbXAxMiJ9.vzd7l-Mhk9vw4p_1nNKC6SS-UdSnOolALRzvQjQ6Lgs
+
