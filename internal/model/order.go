@@ -28,12 +28,11 @@ func (o Order) Valid() bool {
 	if err != nil {
 		return false
 	}
-	return checkLuhn(number)
+	return (number%10+checkLuhn(number/10))%10 == 0
 }
 
 // Check number for Luhn algorithm
-func checkLuhn(number int) bool {
-	number = number / 10
+func checkLuhn(number int) int {
 	var luhn int
 	for i := 0; number > 0; i++ {
 		cur := number % 10
@@ -46,5 +45,5 @@ func checkLuhn(number int) bool {
 		luhn += cur
 		number = number / 10
 	}
-	return (number%10+luhn%10)%10 == 0
+	return luhn % 10
 }
